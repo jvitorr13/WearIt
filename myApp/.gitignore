@@ -1,0 +1,70 @@
+# dependencies
+node_modules/
+
+# Expo
+.expo/
+dist/
+web-build/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+*.apk
+*.aab
+*.hprof
+
+# Native
+ios/build/
+android/build/
+android/app/build/
+android/gradle/
+android/local.properties
+android/.gradle/
+.kotlin/
+
+# Metro
+.metro-health-check*
+
+# debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+.pnpm-debug.log*
+
+# testing
+coverage/
+
+# IDEs and editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*.swn
+*.bak
+
+# macOS
+.DS_Store
+*.pem
+
+# env files
+.env
+.env*.local
+.env.development
+.env.test
+.env.production
+
+# typescript
+*.tsbuildinfo
+
+# Temporary files
+*.log
+.tmp/
+.temp/
+
+# Expo
+expo-env.d.ts
+
+# misc
+app-example/
