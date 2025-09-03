@@ -15,7 +15,7 @@ export function LoginForm({ onSubmit, isLoading = false }: LoginFormProps) {
 
   const handleSubmit = () => {
     if (!email.trim() || !password.trim()) {
-      // Adicione feedback de erro se quiser
+          alert('Por favor, preencha o email e a senha!');
       return;
     }
     onSubmit({ email, password });
@@ -27,6 +27,7 @@ export function LoginForm({ onSubmit, isLoading = false }: LoginFormProps) {
         <TextInput
           style={LoginStyles.input}
           placeholder="Digite seu e-mail"
+          placeholderTextColor="#111111"
           value={email}
           onChangeText={setEmail}
           autoCapitalize="none"
@@ -39,6 +40,7 @@ export function LoginForm({ onSubmit, isLoading = false }: LoginFormProps) {
         <TextInput
           style={LoginStyles.input}
           placeholder="Digite sua senha"
+          placeholderTextColor="#111111"
           value={password}
           onChangeText={setPassword}
           secureTextEntry
@@ -48,7 +50,6 @@ export function LoginForm({ onSubmit, isLoading = false }: LoginFormProps) {
           autoComplete="password"
           onSubmitEditing={handleSubmit}
         />
-        
         <Button
           variant="primary"
           onPress={handleSubmit}
