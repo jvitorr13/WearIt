@@ -7,7 +7,6 @@ import { ThemedView } from '@/components/ThemedView';
 
 const { width } = Dimensions.get('window');
 
-// Dados das imagens do carrossel
 const images = [
   require('@/assets/images/image1.jpg'),
   require('@/assets/images/image2.jpg'),
@@ -21,9 +20,8 @@ export default function LoginScreen() {
   const handleLogin = () => {
     console.log('Email:', email);
     console.log('Password:', password);
-    // Aqui você pode adicionar a lógica para autenticação
   };
-
+  
   return (
     <View style={styles.container}>
       {/* Carrossel de Imagens */}
