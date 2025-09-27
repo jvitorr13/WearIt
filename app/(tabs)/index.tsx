@@ -1,38 +1,49 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, Button, StyleSheet, Alert } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useRouter } from "expo-router";
 
 export default function UserInfoScreen() {
-  const router = useRouter();
   const [form, setForm] = useState({
     sobrenome: "",
     cep: "",
     email: "",
     senha: "",
+    nascimento: "",
+    telefone: "",
+    endereco: "",
   });
 
-  const handleChange = (field: string, value: string) => {
+  function handleChange(field: string, value: string) {
+    // Máscara simples para data no formato DD/MM/AAAA
+    if (field === "nascimento") {
+      value = value.replace(/\D/g, ""); // remove não-dígitos
+      if (value.length > 2) value = value.slice(0, 2) + "/" + value.slice(2);
+      if (value.length > 5) value = value.slice(0, 5) + "/" + value.slice(5, 9);
+      if (value.length > 10) value = value.slice(0, 10);
+    }
     setForm({ ...form, [field]: value });
-  };
+  }
 
-  const handleSave = async () => {
-    if (!form.sobrenome || !form.cep || !form.email || !form.senha) {
-      Alert.alert("Preencha todos os campos!");
+  async function handleSave() {
+    if (
+      !form.sobrenome ||
+      !form.cep ||
+      !form.email ||
+      !form.senha ||
+      !form.nascimento
+    ) {
+      Alert.alert("Preencha todos os campos obrigatórios!");
       return;
     }
-
     try {
-      const userInfo = { ...form };
-      await AsyncStorage.setItem("userInfo", JSON.stringify(userInfo));
+      await AsyncStorage.setItem("userInfo", JSON.stringify(form));
       Alert.alert("Sucesso", "Informações salvas!");
     } catch (error) {
-      console.error(error);
       Alert.alert("Erro", "Não foi possível salvar os dados.");
     }
-  };
+  }
 
-  const handleShow = async () => {
+  async function handleShow() {
     try {
       const data = await AsyncStorage.getItem("userInfo");
       if (data) {
@@ -45,10 +56,9 @@ export default function UserInfoScreen() {
         Alert.alert("Dados Salvos", "Nenhum dado encontrado.");
       }
     } catch (error) {
-      console.error(error);
       Alert.alert("Erro", "Não foi possível ler os dados.");
     }
-  };
+  }
 
   return (
     <View style={styles.container}>
@@ -80,6 +90,26 @@ export default function UserInfoScreen() {
         value={form.senha}
         onChangeText={(v) => handleChange("senha", v)}
       />
+      <TextInput
+        style={styles.input}
+        placeholder="Data de nascimento (DD/MM/AAAA)"
+        keyboardType="numeric"
+        value={form.nascimento}
+        onChangeText={(v) => handleChange("nascimento", v)}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Telefone"
+        keyboardType="phone-pad"
+        value={form.telefone}
+        onChangeText={(v) => handleChange("telefone", v)}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Endereço"
+        value={form.endereco}
+        onChangeText={(v) => handleChange("endereco", v)}
+      />
 
       <Button title="Salvar" onPress={handleSave} />
       <View style={{ marginTop: 10 }}>
@@ -91,7 +121,17 @@ export default function UserInfoScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: "center", padding: 20 },
-  title: { fontSize: 24, fontWeight: "bold", marginBottom: 20, textAlign: "center" },
-  input: { borderWidth: 1, borderColor: "#ccc", padding: 10, marginBottom: 15, borderRadius: 5 },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    padding: 10,
+    marginBottom: 15,
+    borderRadius: 5,
+  },
 });
-
