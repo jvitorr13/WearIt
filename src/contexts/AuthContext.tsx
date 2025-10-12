@@ -1,6 +1,7 @@
 import React, { createContext, useState, useEffect, ReactNode, useContext } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Alert } from "react-native";
+import { login } from "@/src/services/auth";
 
 interface User {
   id: string;
@@ -38,38 +39,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     resetUser();
   }, []);
 
-  // Login
-  const signIn = async ({ email, password }: { email: string; password: string }) => {
-    setIsLoadingAuth(true);
-    try {
-      const response = await fetch("http://192.168.0.110:3000/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+const signIn = async ({ email, password }: { email: string; password: string }) => {
+  setIsLoadingAuth(true);
+  try {
+    const data = await login(email, password);
 
-      if (!response.ok) throw new Error("Credenciais inválidas");
+    const loggedUser: User = {
+      id: data.user.id,
+      name: data.user.name,
+      email: data.user.email,
+      token: data.token,
+    };
 
-      const data = await response.json();
+    setUser(loggedUser);
+    await AsyncStorage.setItem("wearit.user", JSON.stringify(loggedUser));
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Erro desconhecido";
+    console.error("Erro ao fazer login:", message);
+    Alert.alert("Erro no login", message);
+    throw error;
+  } finally {
+    setIsLoadingAuth(false);
+  }
+};
 
-      const loggedUser: User = {
-        id: data.user.id,
-        name: data.user.name,
-        email: data.user.email,
-        token: data.token,
-      };
-
-      setUser(loggedUser);
-      await AsyncStorage.setItem("wearit.user", JSON.stringify(loggedUser));
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Erro desconhecido";
-      console.error("Erro ao fazer login:", message);
-      Alert.alert("Erro no login", message);
-      throw error;
-    } finally {
-      setIsLoadingAuth(false);
-    }
-  };
 
   // Logout
   const signOut = async () => {
