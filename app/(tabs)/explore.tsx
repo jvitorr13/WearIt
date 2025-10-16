@@ -1,9 +1,12 @@
 import { Image } from 'expo-image';
 import React from 'react';
-import { Alert, Button, Dimensions, Platform, StyleSheet, Text, View } from 'react-native';
+import { Alert, Button, Dimensions, View, Text, Modal, StyleSheet } from 'react-native';
 import Carousel from 'react-native-reanimated-carousel';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as ImagePicker from 'expo-image-picker';
+import ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system';
+import { downloadAsync } from 'expo-file-system/legacy';
+import { styles } from './tabTwoScreen';
 
 const { width } = Dimensions.get('window');
 
@@ -15,6 +18,8 @@ const defaultImages = [
 
 export default function TabTwoScreen() {
   const [carouselImages, setCarouselImages] = React.useState<(string | number)[]>(defaultImages);
+  const [modalVisible, setModalVisible] = React.useState(false);
+  const [generatedImage, setGeneratedImage] = React.useState<string>('');
 
   React.useEffect(() => {
     async function loadImages() {
@@ -57,7 +62,7 @@ export default function TabTwoScreen() {
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'],
       quality: 1,
     });
     if (!result.canceled) {
@@ -66,11 +71,45 @@ export default function TabTwoScreen() {
       setCarouselImages(updatedImages);
       try {
         await AsyncStorage.setItem('carouselImages', JSON.stringify(updatedImages));
+        await uploadImages(updatedImages);
       } catch (error) {
-        console.error('Erro ao salvar imagem no carousel:', error);
+        console.error('Erro ao salvar imagem no carousel ou enviar:', error);
       }
     }
   };
+
+  const generateImage = async () => {
+    try {
+      // Realize a requisição para sua API. Exemplo:
+      const response = await fetch('https://api', {
+        method: 'GET' // ou 'POST', conforme sua API
+      });
+      const data = await response.json();
+      // Considere que a API retorna a URL da imagem em data.imageUrl
+      if (data.imageUrl) {
+        setGeneratedImage(data.imageUrl);
+        setModalVisible(true);
+      } else {
+        Alert.alert('Erro', 'A imagem não foi retornada pela API');
+      }
+    } catch (error) {
+      console.error('Erro ao gerar imagem:', error);
+      Alert.alert('Erro', 'Não foi possível gerar a imagem');
+    }
+  };
+
+const downloadImage = async () => {
+  try {
+    const dir = (FileSystem as unknown as { documentDirectory: string }).documentDirectory;
+    const fileUri = dir + 'generatedImage.jpg';
+    const { uri } = await FileSystem.downloadAsync(generatedImage, fileUri);
+    Alert.alert('Download concluído', `Imagem salva em: ${uri}`);
+  } catch (error) {
+    console.error('Erro ao baixar a imagem:', error);
+    Alert.alert('Erro', 'Não foi possível baixar a imagem');
+  }
+};
+
 
   return (
     <View style={styles.container}>
@@ -107,11 +146,7 @@ export default function TabTwoScreen() {
         </View>
 
         <View style={{ marginBottom: 10 }}>
-          <Button
-            onPress={() => Alert.alert('Funcionando')}
-            title="Gerar Imagem"
-            color="#000000ff"
-          />
+          <Button onPress={generateImage} title="Gerar Imagem" color="#000000ff" />
         </View>
 
         <View style={{ marginBottom: 10 }}>
@@ -122,83 +157,87 @@ export default function TabTwoScreen() {
           <Button onPress={pickImage} title="Inserir Imagem" color="#00008b" />
         </View>
       </View>
+
+      <Modal
+        animationType="slide"
+        visible={modalVisible}
+        transparent={true}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={modalStyles.centeredView}>
+          <View style={modalStyles.modalView}>
+            <Text style={modalStyles.modalText}>Imagem Gerada</Text>
+            {generatedImage ? (
+              <Image source={{ uri: generatedImage }} style={modalStyles.generatedImage} contentFit="contain" />
+            ) : null}
+            <View style={{ marginTop: 10 }}>
+              <Button title="Baixar Imagem" onPress={downloadImage} />
+            </View>
+            <View style={{ marginTop: 10 }}>
+              <Button title="Fechar" onPress={() => setModalVisible(false)} />
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  headerview: {
-    width: '100%',
-    minHeight: 65,
-    maxHeight: 85,
-    height: '10%',
-    backgroundColor: '#ffffffff',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    elevation: 5,
-    marginTop: 15,
-  },
-  card: {
-    margin: 8,
-    backgroundColor: '#ffffffff',
-    justifyContent: 'center',
-    width: 395,
-    maxWidth: '96%',
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    textAlign: 'center',
-    paddingTop: 12,
-  },
-  userIcon: {
-    height: 50,
-    minWidth: 50,
-    borderRadius: 100,
-    width: '12%',
-    backgroundColor: '#c9c9c9ff',
-    marginHorizontal: 4,
-  },
-  userName: {
-    height: 50,
-    width: 345,
-    marginBottom: 8,
-    backgroundColor: '#ffffffff',
-  },
-  text: {
-    flexDirection: 'row',
-    gap: 8,
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: 'black',
-    paddingLeft: 12,
-    paddingTop: 8,
-  },
-  container: {
-    paddingHorizontal: 0,
-    marginTop: 20,
-    width: '100%',
-    backgroundColor: '#ffffffff',
-  },
-  carouselContainer: {
-    marginBottom: 20,
-    width: '100%',
-    height: 430,
-  },
-  carouselItemContainer: {
+const uploadImages = async (images: (string | number)[]) => {
+  const formData = new FormData();
+
+  images.forEach((img, index) => {
+    if (typeof img === 'string') {
+      const uri = img;
+      const filename = uri.split('/').pop();
+      let match = /\.(\w+)$/.exec(filename || '');
+      let type = match ? `image/${match[1]}` : `image`;
+      formData.append('photos', {
+        uri,
+        name: filename,
+        type,
+      } as any);
+    }
+  });
+
+  try {
+    const response = await fetch('https://api', {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    const json = await response.json();
+    console.log('Imagens enviadas com sucesso:', json);
+  } catch (error) {
+    console.error('Erro ao enviar imagens:', error);
+  }
+};
+
+const modalStyles = StyleSheet.create({
+  centeredView: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    height: 430,
+    backgroundColor: 'rgba(0,0,0,0.5)',
   },
-  carouselImage: {
-    width: '100%',
-    height: 430,
-    borderRadius: 8,
+  modalView: {
+    width: '80%',
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 20,
+    alignItems: 'center',
+    elevation: 5,
   },
-  titleContainer: {
-    flexDirection: 'row',
-    gap: 8,
+  modalText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  generatedImage: {
+    width: 200,
+    height: 200,
+    borderRadius: 10,
   },
 });
