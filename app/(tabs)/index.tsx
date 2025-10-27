@@ -31,10 +31,7 @@ export default function UserInfoScreen() {
       !form.email ||
       !form.senha ||
       !form.nascimento
-    ) {
-      Alert.alert("Preencha todos os campos obrigatórios!");
-      return;
-    }
+    ) 
     try {
       await AsyncStorage.setItem("userInfo", JSON.stringify(form));
       Alert.alert("Sucesso", "Informações salvas!");
@@ -66,15 +63,25 @@ export default function UserInfoScreen() {
 
       <TextInput
         style={styles.input}
+        placeholder="Nome"
+        value={form.sobrenome}
+        onChangeText={(v) => handleChange("sobrenome", v)}
+        placeholderTextColor={"#635858ff"}
+      />
+
+      <TextInput
+        style={styles.input}
         placeholder="Sobrenome"
         value={form.sobrenome}
         onChangeText={(v) => handleChange("sobrenome", v)}
+        placeholderTextColor={"#635858ff"}
       />
       <TextInput
         style={styles.input}
         placeholder="CEP"
         value={form.cep}
         onChangeText={(v) => handleChange("cep", v)}
+        placeholderTextColor={"#635858ff"}
       />
       <TextInput
         style={styles.input}
@@ -82,20 +89,17 @@ export default function UserInfoScreen() {
         keyboardType="email-address"
         value={form.email}
         onChangeText={(v) => handleChange("email", v)}
+        placeholderTextColor={"#635858ff"} 
       />
-      <TextInput
-        style={styles.input}
-        placeholder="Senha"
-        secureTextEntry
-        value={form.senha}
-        onChangeText={(v) => handleChange("senha", v)}
-      />
+
       <TextInput
         style={styles.input}
         placeholder="Data de nascimento (DD/MM/AAAA)"
         keyboardType="numeric"
         value={form.nascimento}
         onChangeText={(v) => handleChange("nascimento", v)}
+        placeholderTextColor={"#635858ff"}
+
       />
       <TextInput
         style={styles.input}
@@ -103,12 +107,14 @@ export default function UserInfoScreen() {
         keyboardType="phone-pad"
         value={form.telefone}
         onChangeText={(v) => handleChange("telefone", v)}
+        placeholderTextColor={"#635858ff"}
       />
       <TextInput
         style={styles.input}
         placeholder="Endereço"
         value={form.endereco}
         onChangeText={(v) => handleChange("endereco", v)}
+        placeholderTextColor={"#635858ff"}
       />
 
       <Button title="Salvar" onPress={handleSave} />
@@ -129,7 +135,7 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: "#ccc",
+    borderColor: "#635858ff",
     padding: 10,
     marginBottom: 15,
     borderRadius: 5,

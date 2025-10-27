@@ -3,10 +3,11 @@ import React from 'react';
 import { Alert, Button, Dimensions, View, Text, Modal, StyleSheet } from 'react-native';
 import Carousel from 'react-native-reanimated-carousel';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import ImagePicker from 'expo-image-picker';
+import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
 import { downloadAsync } from 'expo-file-system/legacy';
-import { styles } from './tabTwoScreen';
+import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
+import { styles } from '../../src/styles/tabTwoScreen';
 
 const { width } = Dimensions.get('window');
 
@@ -20,6 +21,8 @@ export default function TabTwoScreen() {
   const [carouselImages, setCarouselImages] = React.useState<(string | number)[]>(defaultImages);
   const [modalVisible, setModalVisible] = React.useState(false);
   const [generatedImage, setGeneratedImage] = React.useState<string>('');
+  const [user, setUser] = React.useState<{ nome?: string }>({});
+
 
   React.useEffect(() => {
     async function loadImages() {
@@ -35,6 +38,22 @@ export default function TabTwoScreen() {
     }
     loadImages();
   }, []);
+  React.useEffect(() => {
+    async function loadUser() {
+      try {
+        const savedUser = await AsyncStorage.getItem('userInfo');
+        if (savedUser) {
+          const userData = JSON.parse(savedUser);
+          setUser(userData.sobrenome);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar usuário:', error);
+      }
+    }
+
+    loadUser();
+  }, []);
+
 
   const showUserData = async () => {
     try {
@@ -115,20 +134,19 @@ const downloadImage = async () => {
     <View style={styles.container}>
       <View style={styles.headerview}>
         <View style={styles.cardHeader}>
-          <Text style={styles.text}>Name</Text>
-          <View style={styles.userIcon}></View>
-          <View style={styles.userIcon}></View>
-          <View style={styles.userIcon}></View>
+          <Text style={styles.text}>{user.nome || "Name"}</Text>
+           <View style={styles.userIcon}>
+             <FontAwesome6
+                name="face-grin-wink"
+                size={24}
+                color="black"
+                style={{ marginLeft: 20, marginTop: 10 }}
+              />
+          </View>
         </View>
       </View>
 
-      <View style={styles.card}>
-        <View style={styles.cardHeader}>
-          <View style={styles.userIcon}></View>
-          <View style={styles.userName}>
-            <Text style={styles.text}>Username(input)</Text>
-          </View>
-        </View>
+      <View style={{ alignItems: 'center', marginTop: 60 }}>  
 
         <View style={styles.carouselContainer}>
           <Carousel

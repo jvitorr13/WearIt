@@ -1,4 +1,5 @@
-import { StyleSheet } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
   headerview: {
@@ -27,9 +28,9 @@ export const styles = StyleSheet.create({
   },
   userIcon: {
     height: 50,
-    minWidth: 50,
-    borderRadius: 100,
-    width: '12%',
+    minWidth: 70,
+    borderRadius: 70,
+    width: '15%',
     backgroundColor: '#c9c9c9ff',
     marginHorizontal: 4,
   },
